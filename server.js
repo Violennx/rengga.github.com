@@ -3,6 +3,8 @@ const QRCode = require("qrcode"); // Untuk generate QR Code
 const path = require("path");
 const app = express();
 const db = require("./db");
+const cors = require('cors');
+
 
 
 // Simpan token dan status penggunaannya
@@ -30,6 +32,10 @@ app.get("/validate", (req, res) => {
     tokens[token] = true;
     res.json({ valid: true, message: "Token valid, selamat datang!" });
 });
+
+app.use(cors({
+    origin: 'https://violennx.github.io/rengga.github.com/', // Ganti dengan URL frontend Anda
+}));
 
 // Endpoint untuk generate QR Code
 app.get("/generate", async (req, res) => {
