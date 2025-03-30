@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klik Berhadiah </title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-image: url('cobalagi.jpg');
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: #3f3f3f;
+            margin-bottom: 20px;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .hidden {
+            opacity: 0;
+        }
+        .visible {
+            opacity: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            button {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="form-container">
+        <h1>Masukkan Kode Unik Anda</h1>
+        <form id="unique-code-form" onsubmit="validateCode(event)">
+            <input type="text" id="unique-code-input" placeholder="Kode Unik" required>
+            <button type="submit">Validasi</button>
+        </form>
+    </div>
+    <div id="generate-container" style="display: none;">
+        <h1 id="result">Klik tombol di bawah ini</h1>
+        <button id="generate-button" onclick="generateText()">Coba Keberuntungan</button>
+    </div>
+    <script>
+        function generateText() {
+            const teks = [
+                { text: "Maaf, coba lagi", weight: 1 },
+                { text: "Selamat, anda beruntung", weight: 10 }
+            ];
+
+            const expandedArray = teks.flatMap(item => Array(item.weight).fill(item.text));
+            const randomIndex = Math.floor(Math.random() * expandedArray.length);
+            const hasil = expandedArray[randomIndex];
+
+            const resultElement = document.getElementById("result");
+            const button = document.getElementById("generate-button");
+
+            resultElement.classList.add("hidden"); // Tambahkan efek hilang
+
+            setTimeout(() => {
+                resultElement.innerText = hasil; // Ganti teks setelah efek selesai
+                resultElement.classList.remove("hidden");
+                resultElement.classList.add("visible");
+
+                // Nonaktifkan tombol setelah digunakan
+                button.disabled = true;
+
+                // Dukungan suara
+                const speech = new SpeechSynthesisUtterance(hasil);
+                window.speechSynthesis.speak(speech);
+            }, 1000); // Delay untuk efek
+        }
+    </script>
+
+<script>
+    function validateCode(event) {
+        event.preventDefault(); // Mencegah form melakukan refresh halaman
+        
+        const code = document.getElementById("unique-code-input").value;
+
+        fetch("http://localhost:3000/validate-token", { // Hubungkan ke backend
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ token: code }) // Kirim kode unik ke server
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text(); // Jika validasi berhasil
+            } else {
+                throw new Error("Kode unik tidak valid atau sudah digunakan.");
+            }
+        })
+        .then(message => {
+            alert(message); // Tampilkan pesan sukses
+            document.getElementById("form-container").style.display = "none"; // Sembunyikan form
+            document.getElementById("generate-container").style.display = "block"; // Tampilkan tombol generate teks
+        })
+        .catch(error => {
+            alert(error.message); // Tampilkan pesan error jika gagal
+        });
+    }
+</script>
+</body>
+</html>
