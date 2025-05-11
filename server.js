@@ -3,136 +3,78 @@ const QRCode = require("qrcode"); // Untuk generate QR Code
 const path = require("path");
 const app = express();
 const db = require("./db");
-const cors = require('cors');
 
-
-
-// Simpan token dan status penggunaannya
-let tokens = {
-    "UNIK12345": false,
-    "UNIK67890": false
-};
 
 // Middleware untuk parsing data JSON
 app.use(express.json());
 
-// Endpoint untuk validasi token
-app.get("/validate", (req, res) => {
-    const token = req.query.token;
-
-    if (!token || !tokens.hasOwnProperty(token)) {
-        return res.status(400).json({ valid: false, message: "Token tidak valid!" });
-    }
-
-    if (tokens[token]) {
-        return res.status(403).json({ valid: false, message: "QR Code sudah digunakan!" });
-    }
-
-    // Tandai token sebagai sudah digunakan
-    tokens[token] = true;
-    res.json({ valid: true, message: "Token valid, selamat datang!" });
-});
-
-app.use(cors({
-    origin: 'https://violennx.github.io/rengga.github.com/', // Ganti dengan URL frontend Anda
-}));
-
-// Endpoint untuk generate QR Code
-app.get("/generate", async (req, res) => {
-    const token = req.query.token;
-
-    if (!token || !tokens.hasOwnProperty(token)) {
-        return res.status(400).send("Token tidak valid untuk QR Code!");
-    }
-
-    try {
-        // Generate URL dengan token
-        const url = `http://localhost:3000/?token=${token}`;
-        const qrCode = await QRCode.toDataURL(url); // Generate QR Code
-
-        res.send(`
-            <h1>QR Code untuk ${token}</h1>
-            <img src="${qrCode}" alt="QR Code">
-        `);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Gagal membuat QR Code!");
-    }
-});
-
-// Middleware untuk menyajikan file statis dari folder 'public'
 app.use(express.static(path.join(__dirname, "public")));
 
-
-
-
-
-// Endpoint untuk pengujian koneksi
+// Endpoint untuk pengujian koneksi database
 app.get("/test-db", (req, res) => {
     db.query("SELECT 1 + 1 AS result", (err, results) => {
         if (err) {
-            console.error(err);
+            console.error("Kesalahan akses database:", err.message);
             return res.status(500).send("Kesalahan saat mengakses database!");
         }
         res.send(`Hasil tes database: ${results[0].result}`);
     });
 });
 
-
-// Endpoint untuk menyimpan kode unik
+// Endpoint untuk menyimpan kode unik ke database
 app.post("/add-token", (req, res) => {
-    console.log(req.body);
+    console.log("Data request:", req.body);
     
     const { token } = req.body;
     if (!token) {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
-    db.query("INSERT INTO tokens (tokens, is_used) VALUES (?, ?)", [token, false], (err, results) => {
+    db.query("INSERT INTO qrcode.kode_redeem (kode, is_used) VALUES (?, ?)", [token, false], (err, results) => {
         if (err) {
-            console.error(err);
+            console.error("Gagal menyimpan kode unik:", err.message);
             return res.status(500).send("Gagal menyimpan kode unik ke database!");
         }
         res.send("Kode unik berhasil disimpan!");
     });
 });
 
+// Endpoint untuk validasi kode unik
 app.post("/validate-token", (req, res) => {
     const { token } = req.body; // Ambil kode unik dari body request
+    console.log("Token yang diterima:", token); // Debugging log
 
     if (!token) {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
     // Query untuk mengecek apakah kode unik valid
-    db.query("SELECT * FROM tokens WHERE tokens = ?", [token], (err, results) => {
+    db.query("SELECT * FROM qrcode.kode_redeem WHERE kode = ?", [token], (err, results) => {
         if (err) {
-            console.error(err);
+            console.error("Error validasi token:", err.message);
             return res.status(500).send("Gagal memvalidasi kode unik!");
         }
 
+        console.log("Hasil query dari database:", results); // Debugging log
+
         if (results.length === 0) {
-            // Jika kode tidak ditemukan di database
             return res.status(404).send("Kode unik tidak ditemukan!");
         }
 
         if (results[0].is_used) {
-            // Jika kode sudah digunakan
             return res.status(403).send("Kode unik sudah digunakan!");
         }
 
         // Jika kode valid, tandai sebagai sudah digunakan
-        db.query("UPDATE tokens SET is_used = TRUE WHERE tokens = ?", [token], (err) => {
+        db.query("UPDATE qrcode.kode_redeem SET is_used = TRUE WHERE kode = ?", [token], (err) => {
             if (err) {
-                console.error(err);
+                console.error("Error update token:", err.message);
                 return res.status(500).send("Gagal memperbarui status kode unik!");
             }
             res.send("Kode unik valid dan berhasil digunakan!");
         });
     });
 });
-
-
 
 
 
