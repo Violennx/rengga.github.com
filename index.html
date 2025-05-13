@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Klik Berhadiah </title>
     <style>
+        
         body {
             display: flex;
             justify-content: center;
@@ -101,7 +102,7 @@
         
         const code = document.getElementById("unique-code-input").value;
 
-        fetch("http://localhost:3000/validate-token", { // Hubungkan ke backend
+        fetch("https://rengga-github-p8wmg8v00-renggas-projects-89844fb7.vercel.app/", { // Hubungkan ke backend
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -124,21 +125,6 @@
             alert(error.message); // Tampilkan pesan error jika gagal
         });
     }
-    </script>
-    
-<script src="main.js"></script>
-
-<script> const backendURL = "https://rengga-github-com.vercel.app/";
-
-fetch(`${backendURL}/api/endpoint`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ code: 'ABC123' }),
-})
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));</script>
+</script>
 </body>
 </html>
