@@ -4,7 +4,6 @@ const path = require("path");
 const app = express();
 const db = require("./db");
 
-
 // Middleware untuk parsing data JSON
 app.use(express.json());
 
@@ -30,7 +29,7 @@ app.post("/add-token", (req, res) => {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
-    db.query("INSERT INTO qrcode.kode_redeem (kode, is_used) VALUES (?, ?)", [token, false], (err, results) => {
+    db.query("INSERT INTO qrcodeku.tokens (kode, is_used) VALUES (?, ?)", [token, false], (err, results) => {
         if (err) {
             console.error("Gagal menyimpan kode unik:", err.message);
             return res.status(500).send("Gagal menyimpan kode unik ke database!");
@@ -49,7 +48,7 @@ app.post("/validate-token", (req, res) => {
     }
 
     // Query untuk mengecek apakah kode unik valid
-    db.query("SELECT * FROM qrcode.kode_redeem WHERE kode = ?", [token], (err, results) => {
+    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [token], (err, results) => {
         if (err) {
             console.error("Error validasi token:", err.message);
             return res.status(500).send("Gagal memvalidasi kode unik!");
@@ -66,7 +65,7 @@ app.post("/validate-token", (req, res) => {
         }
 
         // Jika kode valid, tandai sebagai sudah digunakan
-        db.query("UPDATE qrcode.kode_redeem SET is_used = TRUE WHERE kode = ?", [token], (err) => {
+        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [token], (err) => {
             if (err) {
                 console.error("Error update token:", err.message);
                 return res.status(500).send("Gagal memperbarui status kode unik!");
@@ -75,8 +74,6 @@ app.post("/validate-token", (req, res) => {
         });
     });
 });
-
-
 
 // Jalankan server
 app.listen(3000, () => {
