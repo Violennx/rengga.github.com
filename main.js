@@ -1,4 +1,4 @@
-const backendURL = "https://rengga-github-com.vercel.app//";
+const backendURL = "https://rengga-github-gm7sxys57-renggas-projects-89844fb7.vercel.app";
 
 document.querySelector('#submitBtn').addEventListener('click', () => {
   const code = document.querySelector('#redeemCode').value; // Ambil input dari pengguna
