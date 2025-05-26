@@ -3,6 +3,12 @@ const QRCode = require("qrcode"); // Untuk generate QR Code
 const path = require("path");
 const app = express();
 const db = require("./db");
+const cors = require("cors");
+
+app.use(cors({
+    origin: ["http://localhost:3000", "https://rengga-github-p8wmg8v00-renggas-projects-89844fb7.vercel.app//"], // Ganti dengan URL frontend asli
+    credentials: true
+}));
 
 // Middleware untuk parsing data JSON
 app.use(express.json());
