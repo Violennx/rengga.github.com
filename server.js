@@ -6,7 +6,7 @@ const db = require("./db");
 const cors = require("cors");
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://rengga-github-gm7sxys57-renggas-projects-89844fb7.vercel.app"], // Ganti dengan URL frontend asli
+    origin: ["http://localhost:3000", "https://backend-ed8dxvzs5-renggas-projects-89844fb7.vercel.app"], // Ganti dengan URL frontend asli
     credentials: true
 }));
 
