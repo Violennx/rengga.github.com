@@ -15,6 +15,43 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
 
+
+
+// Tambah endpoint root "/" untuk match dengan frontend
+app.post("/", (req, res) => {
+    const { token } = req.body;
+    console.log("Token yang diterima:", token);
+
+    if (!token) {
+        return res.status(400).send("Token tidak boleh kosong!");
+    }
+
+    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [token], (err, results) => {
+        if (err) {
+            console.error("Error validasi token:", err.message);
+            return res.status(500).send("Gagal memvalidasi kode unik!");
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send("Kode unik tidak ditemukan!");
+        }
+
+        if (results[0].is_used) {
+            return res.status(403).send("Kode unik sudah digunakan!");
+        }
+
+        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [token], (err) => {
+            if (err) {
+                console.error("Error update token:", err.message);
+                return res.status(500).send("Gagal memperbarui status kode unik!");
+            }
+            res.send("Kode unik valid dan berhasil digunakan!");
+        });
+    });
+});
+
+
+
 // Endpoint untuk pengujian koneksi database
 app.get("/test-db", (req, res) => {
     db.query("SELECT 1 + 1 AS result", (err, results) => {
