@@ -1,4 +1,4 @@
-const backendURL = "https://backend-phi-ruby.vercel.app/";
+const backendURL = "https://backend-phi-ruby.vercel.app";
 
 document.querySelector('#submitBtn').addEventListener('click', () => {
   const code = document.querySelector('#redeemCode').value; // Ambil input dari pengguna
