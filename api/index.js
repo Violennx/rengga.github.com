@@ -120,6 +120,4 @@ app.post("/validate-token", (req, res) => {
 });
 
 // Jalankan server
-app.listen(3000, () => {
-    console.log("Server berjalan di http://localhost:3000");
-});
+module.exports = app;
