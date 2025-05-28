@@ -3,7 +3,7 @@ const express = require("express");
 const QRCode = require("qrcode"); // Untuk generate QR Code
 const path = require("path");
 const app = express();
-const db = require("./db");
+const db = require("../db");
 const cors = require("cors");
 
 app.use(cors({
