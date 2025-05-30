@@ -119,5 +119,9 @@ app.post("/validate-token", (req, res) => {
     });
 });
 
+app.get("/", (req, res) => {
+    res.send("Backend berjalan dengan baik!");
+});
+
 // Jalankan server
 module.exports = app;
