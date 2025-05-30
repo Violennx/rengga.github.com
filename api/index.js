@@ -119,6 +119,39 @@ app.post("/validate-token", (req, res) => {
     });
 });
 
+// Endpoint untuk redeem code yang dipanggil frontend
+app.post("/api/redeem", (req, res) => {
+    const { code } = req.body;
+    console.log("Code yang diterima:", code);
+
+    if (!code) {
+        return res.status(400).json({ message: "Code tidak boleh kosong!" });
+    }
+
+    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [code], (err, results) => {
+        if (err) {
+            console.error("Error validasi code:", err.message);
+            return res.status(500).json({ message: "Gagal memvalidasi code!" });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Code tidak ditemukan!" });
+        }
+
+        if (results[0].is_used) {
+            return res.status(403).json({ message: "Code sudah digunakan!" });
+        }
+
+        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [code], (err) => {
+            if (err) {
+                console.error("Error update code:", err.message);
+                return res.status(500).json({ message: "Gagal memperbarui status code!" });
+            }
+            res.json({ message: "Code valid dan berhasil digunakan!" });
+        });
+    });
+});
+
 app.get("/", (req, res) => {
     res.send("Backend berjalan dengan baik!");
 });
