@@ -4,7 +4,7 @@
   "main": "api/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node api/index.js"
+    "start": "node api/index.js",
     "dev": "node api/index.js"
   },
   "keywords": [],
@@ -14,7 +14,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "mongodb": "^6.16.0",
     "mysql2": "^3.14.0",
     "qrcode": "^1.5.4"
   }
