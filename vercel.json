@@ -6,7 +6,7 @@
       "ise": "@vercel/node"
 
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
