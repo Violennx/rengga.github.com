@@ -123,5 +123,11 @@ app.get("/", (req, res) => {
     res.send("Backend berjalan dengan baik!");
 });
 
+const port = process.env.PORT || 3000; // Gunakan port dari environment variable atau default 3000
+
+app.listen(port, () => {
+    console.log(`Server berjalan di port ${port}`);
+});
+
 // Jalankan server
 module.exports = app;
