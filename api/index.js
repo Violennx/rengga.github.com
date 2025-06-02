@@ -152,6 +152,17 @@ app.post("/api/redeem", (req, res) => {
     });
 });
 
+app.get("/debug-db", (req, res) => {
+    res.json({
+        host: process.env.DB_HOST || "Not set",
+        user: process.env.DB_USER || "Not set", 
+        database: process.env.DB_NAME || "Not set",
+        port: process.env.DB_PORT || "Not set",
+        password_set: !!process.env.DB_PASSWORD
+    });
+});
+
+
 // Tambahkan di api/index.js
 app.post("/api/test", (req, res) => {
     const { code } = req.body;
