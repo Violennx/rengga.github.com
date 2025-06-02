@@ -119,36 +119,73 @@ app.post("/validate-token", (req, res) => {
     });
 });
 
-// Endpoint untuk redeem code yang dipanggil frontend
 app.post("/api/redeem", (req, res) => {
     const { code } = req.body;
+    console.log("=== DEBUG REDEEM ===");
     console.log("Code yang diterima:", code);
+    console.log("Request body:", req.body);
 
     if (!code) {
+        console.log("Code kosong!");
         return res.status(400).json({ message: "Code tidak boleh kosong!" });
     }
 
+    // Debug query
+    console.log("Menjalankan query SELECT...");
     db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [code], (err, results) => {
         if (err) {
-            console.error("Error validasi code:", err.message);
+            console.error("Error SELECT query:", err.message);
             return res.status(500).json({ message: "Gagal memvalidasi code!" });
         }
 
+        console.log("Query results:", results);
+        console.log("Results length:", results.length);
+
         if (results.length === 0) {
+            console.log("Code tidak ditemukan di database");
             return res.status(404).json({ message: "Code tidak ditemukan!" });
         }
 
+        console.log("Token data:", results[0]);
+        console.log("is_used value:", results[0].is_used);
+        console.log("is_used type:", typeof results[0].is_used);
+
         if (results[0].is_used) {
+            console.log("Code sudah digunakan");
             return res.status(403).json({ message: "Code sudah digunakan!" });
         }
 
+        // Debug UPDATE query
+        console.log("Menjalankan query UPDATE...");
         db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [code], (err) => {
             if (err) {
-                console.error("Error update code:", err.message);
+                console.error("Error UPDATE query:", err.message);
                 return res.status(500).json({ message: "Gagal memperbarui status code!" });
             }
+            console.log("UPDATE berhasil");
             res.json({ message: "Code valid dan berhasil digunakan!" });
         });
+    });
+});
+
+
+app.get("/debug-table", (req, res) => {
+    db.query("DESCRIBE qrcodeku.tokens", (err, results) => {
+        if (err) {
+            console.error("Error DESCRIBE:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ table_structure: results });
+    });
+});
+
+app.get("/debug-data", (req, res) => {
+    db.query("SELECT * FROM qrcodeku.tokens LIMIT 5", (err, results) => {
+        if (err) {
+            console.error("Error SELECT:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ sample_data: results });
     });
 });
 
