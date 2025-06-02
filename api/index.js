@@ -152,6 +152,16 @@ app.post("/api/redeem", (req, res) => {
     });
 });
 
+// Tambahkan di api/index.js
+app.post("/api/test", (req, res) => {
+    const { code } = req.body;
+    res.json({ 
+        message: `Test berhasil! Code yang diterima: ${code}`,
+        timestamp: new Date().toISOString()
+    });
+});
+
+
 app.get("/", (req, res) => {
     res.send("Backend berjalan dengan baik!");
 });
