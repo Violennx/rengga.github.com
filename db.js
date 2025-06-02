@@ -17,5 +17,9 @@ db.connect(err => {
     console.log("Terhubung ke database!");
 });
 
-module.exports = db; // Ekspor koneksi untuk digunakan di server.js
+module.exports = {
+    url: process.env.service_URI // Ekspor koneksi untuk digunakan di server.js
+
+}
+
 
