@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 
-// Tambah endpoint root "/" untuk match dengan frontend
+// Perbaikan untuk endpoint root "/"
 app.post("/", (req, res) => {
     const { token } = req.body;
     console.log("Token yang diterima:", token);
@@ -27,7 +27,8 @@ app.post("/", (req, res) => {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
-    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [token], (err, results) => {
+    // PERBAIKAN: Gunakan 'token' bukan 'kode'
+    db.query("SELECT * FROM qrcodeku.tokens WHERE token = ?", [token], (err, results) => {
         if (err) {
             console.error("Error validasi token:", err.message);
             return res.status(500).send("Gagal memvalidasi kode unik!");
@@ -37,11 +38,14 @@ app.post("/", (req, res) => {
             return res.status(404).send("Kode unik tidak ditemukan!");
         }
 
-        if (results[0].is_used) {
+        const isUsed = results[0].is_used === 1 || results[0].is_used === true || results[0].is_used === '1';
+        
+        if (isUsed) {
             return res.status(403).send("Kode unik sudah digunakan!");
         }
 
-        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [token], (err) => {
+        // PERBAIKAN: Update juga gunakan 'token'
+        db.query("UPDATE qrcodeku.tokens SET is_used = 1 WHERE token = ?", [token], (err) => {
             if (err) {
                 console.error("Error update token:", err.message);
                 return res.status(500).send("Gagal memperbarui status kode unik!");
@@ -50,7 +54,6 @@ app.post("/", (req, res) => {
         });
     });
 });
-
 
 
 // Endpoint untuk pengujian koneksi database
@@ -64,7 +67,6 @@ app.get("/test-db", (req, res) => {
     });
 });
 
-// Endpoint untuk menyimpan kode unik ke database
 app.post("/add-token", (req, res) => {
     console.log("Data request:", req.body);
     
@@ -73,7 +75,8 @@ app.post("/add-token", (req, res) => {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
-    db.query("INSERT INTO qrcodeku.tokens (kode, is_used) VALUES (?, ?)", [token, false], (err, results) => {
+    // PERBAIKAN: Gunakan 'token' bukan 'kode'
+    db.query("INSERT INTO qrcodeku.tokens (token, is_used) VALUES (?, ?)", [token, 0], (err, results) => {
         if (err) {
             console.error("Gagal menyimpan kode unik:", err.message);
             return res.status(500).send("Gagal menyimpan kode unik ke database!");
@@ -83,33 +86,36 @@ app.post("/add-token", (req, res) => {
 });
 
 // Endpoint untuk validasi kode unik
+// Perbaikan untuk endpoint /validate-token
 app.post("/validate-token", (req, res) => {
-    const { token } = req.body; // Ambil kode unik dari body request
-    console.log("Token yang diterima:", token); // Debugging log
+    const { token } = req.body;
+    console.log("Token yang diterima:", token);
 
     if (!token) {
         return res.status(400).send("Token tidak boleh kosong!");
     }
 
-    // Query untuk mengecek apakah kode unik valid
-    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [token], (err, results) => {
+    // PERBAIKAN: Gunakan 'token' bukan 'kode'
+    db.query("SELECT * FROM qrcodeku.tokens WHERE token = ?", [token], (err, results) => {
         if (err) {
             console.error("Error validasi token:", err.message);
             return res.status(500).send("Gagal memvalidasi kode unik!");
         }
 
-        console.log("Hasil query dari database:", results); // Debugging log
+        console.log("Hasil query dari database:", results);
 
         if (results.length === 0) {
             return res.status(404).send("Kode unik tidak ditemukan!");
         }
 
-        if (results[0].is_used) {
+        const isUsed = results[0].is_used === 1 || results[0].is_used === true || results[0].is_used === '1';
+        
+        if (isUsed) {
             return res.status(403).send("Kode unik sudah digunakan!");
         }
 
-        // Jika kode valid, tandai sebagai sudah digunakan
-        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [token], (err) => {
+        // PERBAIKAN: Update juga gunakan 'token'
+        db.query("UPDATE qrcodeku.tokens SET is_used = 1 WHERE token = ?", [token], (err) => {
             if (err) {
                 console.error("Error update token:", err.message);
                 return res.status(500).send("Gagal memperbarui status kode unik!");
@@ -119,20 +125,20 @@ app.post("/validate-token", (req, res) => {
     });
 });
 
+// Perbaikan untuk endpoint /api/redeem
 app.post("/api/redeem", (req, res) => {
     const { code } = req.body;
     console.log("=== DEBUG REDEEM ===");
     console.log("Code yang diterima:", code);
-    console.log("Request body:", req.body);
 
     if (!code) {
         console.log("Code kosong!");
         return res.status(400).json({ message: "Code tidak boleh kosong!" });
     }
 
-    // Debug query
+    // PERBAIKAN: Gunakan 'token' bukan 'kode'
     console.log("Menjalankan query SELECT...");
-    db.query("SELECT * FROM qrcodeku.tokens WHERE kode = ?", [code], (err, results) => {
+    db.query("SELECT * FROM qrcodeku.tokens WHERE token = ?", [code], (err, results) => {
         if (err) {
             console.error("Error SELECT query:", err.message);
             return res.status(500).json({ message: "Gagal memvalidasi code!" });
@@ -141,6 +147,7 @@ app.post("/api/redeem", (req, res) => {
         console.log("Query results:", results);
         console.log("Results length:", results.length);
 
+        // Jika tidak ditemukan
         if (results.length === 0) {
             console.log("Code tidak ditemukan di database");
             return res.status(404).json({ message: "Code tidak ditemukan!" });
@@ -148,16 +155,18 @@ app.post("/api/redeem", (req, res) => {
 
         console.log("Token data:", results[0]);
         console.log("is_used value:", results[0].is_used);
-        console.log("is_used type:", typeof results[0].is_used);
-
-        if (results[0].is_used) {
+        
+        // Perbaikan pengecekan is_used (handle berbagai tipe data)
+        const isUsed = results[0].is_used === 1 || results[0].is_used === true || results[0].is_used === '1';
+        
+        if (isUsed) {
             console.log("Code sudah digunakan");
             return res.status(403).json({ message: "Code sudah digunakan!" });
         }
 
-        // Debug UPDATE query
+        // PERBAIKAN: Update juga gunakan 'token'
         console.log("Menjalankan query UPDATE...");
-        db.query("UPDATE qrcodeku.tokens SET is_used = TRUE WHERE kode = ?", [code], (err) => {
+        db.query("UPDATE qrcodeku.tokens SET is_used = 1 WHERE token = ?", [code], (err) => {
             if (err) {
                 console.error("Error UPDATE query:", err.message);
                 return res.status(500).json({ message: "Gagal memperbarui status code!" });
@@ -167,7 +176,6 @@ app.post("/api/redeem", (req, res) => {
         });
     });
 });
-
 
 app.get("/debug-table", (req, res) => {
     db.query("DESCRIBE qrcodeku.tokens", (err, results) => {
